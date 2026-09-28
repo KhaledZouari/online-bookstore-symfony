@@ -5,6 +5,103 @@
         <title>{% block title %}Welcome!{% endblock %}</title>
         <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
         {% block stylesheets %}
+            <style>
+                :root {
+                    --navy: #1f2a44;
+                    --navy-soft: #2b3a5c;
+                    --beige: #f7f2e8;
+                    --beige-2: #efe2d0;
+                    --card: #fffaf2;
+                    --line: #e2d6c5;
+                }
+
+                body {
+                    margin: 0;
+                    font-family: "Georgia", "Times New Roman", serif;
+                    color: var(--navy);
+                    background: var(--beige);
+                }
+
+                .site-header {
+                    background: var(--card);
+                    border-bottom: 1px solid var(--line);
+                    position: sticky;
+                    top: 0;
+                    z-index: 20;
+                }
+
+                .site-nav {
+                    max-width: 1100px;
+                    margin: 0 auto;
+                    padding: 12px 20px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 20px;
+                    flex-wrap: wrap;
+                }
+
+                .site-brand {
+                    font-weight: bold;
+                    letter-spacing: 0.5px;
+                    margin-right: 16px;
+                    font-size: 18px;
+                }
+
+                .site-links {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    flex-wrap: wrap;
+                    background: var(--beige-2);
+                    padding: 8px 10px;
+                    border-radius: 999px;
+                }
+
+                .site-links a {
+                    color: var(--navy);
+                    text-decoration: none;
+                    padding: 6px 10px;
+                    border-radius: 999px;
+                    transition: background 0.2s ease, color 0.2s ease;
+                    font-size: 14px;
+                }
+
+                .site-links a:hover {
+                    background: var(--beige-2);
+                    color: var(--navy);
+                }
+
+                .site-links a.active {
+                    background: var(--beige-2);
+                    color: var(--navy);
+                    font-weight: 600;
+                }
+
+                .flash-list {
+                    max-width: 1100px;
+                    margin: 16px auto 0;
+                    padding: 0 20px;
+                }
+
+                .flash {
+                    padding: 10px 12px;
+                    border-radius: 10px;
+                    margin-bottom: 8px;
+                    border: 1px solid var(--line);
+                    background: var(--card);
+                }
+
+                .flash-success {
+                    border-color: #b8d2b2;
+                    background: #f1fbef;
+                }
+
+                .flash-warning {
+                    border-color: #e0c08f;
+                    background: #fff6e3;
+                }
+            </style>
         {% endblock %}
 
         {% block javascripts %}
@@ -12,6 +109,52 @@
         {% endblock %}
     </head>
     <body>
+        {% block header %}
+            <header class="site-header">
+                <nav class="site-nav">
+                    <div class="site-brand">MyBookstore</div>
+                    <div class="site-links">
+                        {% if is_granted('ROLE_ADMIN') %}
+                            <a href="{{ path('front_home') }}" class="{{ app.request.pathinfo == '/' ? 'active' : '' }}">Accueil</a>
+                            <a href="{{ path('front_livre_index') }}" class="{{ app.request.pathinfo starts with '/livres' ? 'active' : '' }}">Livres</a>
+                            <a href="{{ path('cart_index') }}" class="{{ app.request.pathinfo starts with '/panier' ? 'active' : '' }}">Panier</a>
+                            <a href="{{ path('app_order_history') }}" class="{{ app.request.pathinfo starts with '/mes-commandes' ? 'active' : '' }}">Mes commandes</a>
+                            <a href="{{ path('app_profile') }}" class="{{ app.request.pathinfo starts with '/profile' ? 'active' : '' }}">Profil</a>
+                            <a href="{{ path('admin') }}" class="{{ app.request.pathinfo starts with '/admin' ? 'active' : '' }}">Admin</a>
+                        {% else %}
+                            <a href="{{ path('front_home') }}" class="{{ app.request.pathinfo == '/' ? 'active' : '' }}">Accueil</a>
+                            <a href="{{ path('front_livre_index') }}" class="{{ app.request.pathinfo starts with '/livres' ? 'active' : '' }}">Livres</a>
+                            {% if is_granted('ROLE_ABONNE') %}
+                                <a href="{{ path('cart_index') }}" class="{{ app.request.pathinfo starts with '/panier' ? 'active' : '' }}">Panier</a>
+                                <a href="{{ path('app_order_history') }}" class="{{ app.request.pathinfo starts with '/mes-commandes' ? 'active' : '' }}">Mes commandes</a>
+                                <a href="{{ path('app_profile') }}" class="{{ app.request.pathinfo starts with '/profile' ? 'active' : '' }}">Profil</a>
+                            {% endif %}
+                            {% if is_granted('ROLE_AGENT') %}
+                                <a href="{{ path('dashboard_home') }}" class="{{ app.request.pathinfo starts with '/dashboard' ? 'active' : '' }}">Dashboard</a>
+                            {% endif %}
+                        {% endif %}
+
+                        {% if app.user %}
+                            <a href="{{ path('app_logout') }}">Deconnexion</a>
+                        {% else %}
+                            <a href="{{ path('app_login') }}">Connexion</a>
+                        {% endif %}
+                    </div>
+                </nav>
+            </header>
+        {% endblock %}
+
+        {% set flashes = app.flashes %}
+        {% if flashes is not empty %}
+            <div class="flash-list">
+                {% for label, messages in flashes %}
+                    {% for message in messages %}
+                        <div class="flash flash-{{ label }}">{{ message }}</div>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+        {% endif %}
+
         {% block body %}{% endblock %}
     </body>
 </html>

@@ -1,0 +1,94 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon profil{% endblock %}
+
+{% block stylesheets %}
+    <style>
+        :root {
+            --paper: #f7f2e8;
+            --ink: #1f2a44;
+            --muted: #5c667a;
+            --accent: #1f2a44;
+            --card: #fffaf2;
+            --line: #e2d6c5;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Georgia", "Times New Roman", serif;
+            color: var(--ink);
+            background: var(--paper);
+        }
+
+        .page {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 0 20px;
+            display: grid;
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 20px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        input {
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid #d8c6b5;
+        }
+
+        button {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 999px;
+            padding: 10px 16px;
+            cursor: pointer;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="page">
+        <h1>Mon profil</h1>
+
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="card">{{ message }}</div>
+            {% endfor %}
+        {% endfor %}
+
+        <div class="card">
+            <h2>Informations personnelles</h2>
+            {{ form_start(profileForm) }}
+                <div class="field">{{ form_row(profileForm.email) }}</div>
+                <div class="field">{{ form_row(profileForm.prenom) }}</div>
+                <div class="field">{{ form_row(profileForm.nom) }}</div>
+                <div class="field">{{ form_row(profileForm.telephone) }}</div>
+                <div class="field">{{ form_row(profileForm.adresse) }}</div>
+                <button type="submit">Enregistrer</button>
+            {{ form_end(profileForm) }}
+        </div>
+
+        <div class="card">
+            <h2>Changer le mot de passe</h2>
+            {{ form_start(passwordForm) }}
+                <div class="field">{{ form_row(passwordForm.currentPassword) }}</div>
+                <div class="field">{{ form_row(passwordForm.newPassword.first) }}</div>
+                <div class="field">{{ form_row(passwordForm.newPassword.second) }}</div>
+                <button type="submit">Mettre a jour</button>
+            {{ form_end(passwordForm) }}
+        </div>
+    </div>
+{% endblock %}

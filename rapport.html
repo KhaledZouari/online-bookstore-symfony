@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Rapport MyBookstore</title>
+    <style>
+        body { font-family: "Times New Roman", serif; margin: 40px; line-height: 1.6; color: #111; }
+        h1 { font-size: 22px; margin-bottom: 12px; }
+        h2 { font-size: 16px; margin-top: 22px; }
+        h3 { font-size: 14px; margin-top: 14px; }
+        p { margin: 6px 0; }
+        ul { margin: 6px 0 6px 18px; }
+        code { background: #f4f4f4; padding: 2px 4px; }
+        .cmd { font-family: Consolas, monospace; background: #f4f4f4; padding: 6px; display: block; white-space: pre; }
+        .note { background: #fff8e8; padding: 8px; border-left: 3px solid #d0a45b; }
+    </style>
+</head>
+<body>
+    <h1>MyBookstore - Rapport final detaille (GLID-2 2025/2026)</h1>
+
+    <h2>0) Objectif et perimetre</h2>
+    <p>Objectif: realiser une application web MyBookstore avec front-office + back-office.</p>
+    <p>Acteurs: Visiteur, Abonne, Agent, Administrateur.</p>
+    <p>Le projet respecte les roles, les menus, et le parcours de commande.</p>
+    <p class="note">Ce rapport est prepare pour une soutenance technique: il explique le pourquoi des choix et le fonctionnement interne.</p>
+
+    <h2>0.1) Architecture generale</h2>
+    <p>Architecture MVC de Symfony:</p>
+    <ul>
+        <li>Controleurs: gerent les routes et l orchestration (ex: CartController, DashboardController).</li>
+        <li>Entites/Repository: modele de donnees + requetes (ex: Livre, LivreRepository).</li>
+        <li>Templates Twig: vues front et back-office.</li>
+        <li>Services: logique metier reutilisable (ex: CartService).</li>
+    </ul>
+
+    <h2>1) Prerequis techniques</h2>
+    <ul>
+        <li>PHP 8.2+</li>
+        <li>Composer</li>
+        <li>Symfony CLI (optionnel)</li>
+        <li>XAMPP (MariaDB 10.4.x)</li>
+    </ul>
+    <p>Serveur MySQL/MariaDB actif sur 127.0.0.1:3306.</p>
+
+    <h2>2) Initialisation du projet</h2>
+    <p>Creation du projet Symfony webapp.</p>
+    <span class="cmd">symfony new MyBookstore --webapp</span>
+    <p>Configuration DB dans .env.local:</p>
+    <span class="cmd">DATABASE_URL="mysql://root:@127.0.0.1:3306/mybookstore?serverVersion=10.4.32-MariaDB&amp;charset=utf8mb4"</span>
+    <p>Creation de la base:</p>
+    <span class="cmd">php bin/console doctrine:database:create</span>
+
+    <h2>3) Conception du modele de donnees</h2>
+    <p>Entites crees (conformes a l enonce):</p>
+    <ul>
+        <li>User (email, roles, password, prenom, nom, telephone, adresse, isVerified)</li>
+        <li>Auteur (nom, prenom, bio)</li>
+        <li>Editeur (nom, adresse, telephone, email)</li>
+        <li>Categorie (nom, description)</li>
+        <li>Livre (titre, isbn, description, prix, stock, image, datePublication, auteur, editeur, categorie)</li>
+        <li>Commande (createdAt, statut, total, user)</li>
+        <li>LigneCommande (quantite, prixUnitaire, livre, commande)</li>
+    </ul>
+    <p>Relations principales:</p>
+    <ul>
+        <li>Livre -> Auteur / Editeur / Categorie (ManyToOne)</li>
+        <li>Commande -> User (ManyToOne)</li>
+        <li>Commande -> LigneCommande (OneToMany, cascade persist)</li>
+        <li>LigneCommande -> Livre (ManyToOne)</li>
+    </ul>
+    <p>Explication: ce modele permet de separer les entites de reference (Auteur, Editeur, Categorie) du catalogue (Livre) et des transactions (Commande, LigneCommande). Chaque commande est reliee a un utilisateur et contient ses lignes de commande.</p>
+    <p class="note">Pourquoi LigneCommande? Permet de garder l historique des prix et quantites par commande, meme si le prix du livre change plus tard.</p>
+    <p>Generation des migrations et schema DB:</p>
+    <span class="cmd">php bin/console make:migration</span>
+    <span class="cmd">php bin/console doctrine:migrations:migrate</span>
+
+    <h2>4) Securite et roles</h2>
+    <p>Roles imposes:</p>
+    <ul>
+        <li>ROLE_ABONNE</li>
+        <li>ROLE_AGENT</li>
+        <li>ROLE_ADMIN</li>
+    </ul>
+    <p>Hierarchie: ADMIN &gt; AGENT &gt; ABONNE.</p>
+    <p>Acces dashboard uniquement ROLE_AGENT/ROLE_ADMIN.</p>
+    <p>Acces gestion utilisateurs uniquement ROLE_ADMIN.</p>
+    <p>Acces commandes: ROLE_AGENT peut consulter, ROLE_ADMIN peut modifier.</p>
+    <p>Explication: la hierarchie garantit que ADMIN herite des droits AGENT et ABONNE. L AGENT peut gerer les donnees vitrine et consulter les commandes, tandis que l ADMIN peut les modifier.</p>
+    <p class="note">ROLE_AGENT est l equivalent de ROLE_USER, mais ici le role USER par defaut a ete evite pour respecter l enonce.</p>
+
+    <h2>5) Authentification (login / register)</h2>
+    <p>Generation de l authentification:</p>
+    <span class="cmd">php bin/console make:security:form-login</span>
+    <span class="cmd">php bin/console make:registration-form</span>
+    <p>Inscription enrichie avec prenom, nom, telephone, adresse.</p>
+    <p>Role par defaut: ROLE_ABONNE.</p>
+    <p>Explication: l authentification gere la connexion et l inscription. Un visiteur peut creer un compte, puis devient automatiquement Abonne.</p>
+    <p class="note">Le mot de passe est stocke hash et jamais en clair.</p>
+
+    <h2>6) Comptes de test</h2>
+    <p>Admin:</p>
+    <ul>
+        <li>Email: zouarik8@gmail.com</li>
+        <li>Mot de passe: khaled2003</li>
+    </ul>
+    <p>Abonne:</p>
+    <ul>
+        <li>Email: oussama.kaffel@gmail.com</li>
+        <li>Mot de passe: oussama2002</li>
+    </ul>
+    <p>Creation via:</p>
+    <span class="cmd">php bin/console security:hash-password "motdepasse"</span>
+    <span class="cmd">php bin/console doctrine:query:sql "INSERT INTO user ..."</span>
+    <p>Explication: le mot de passe est toujours stocke sous forme hash. On hash d abord, puis on insere l utilisateur.</p>
+
+    <h2>7) Back-Office (Dashboard)</h2>
+    <p>Menu conforme a l enonce:</p>
+    <ul>
+        <li>Auteurs</li>
+        <li>Editeurs</li>
+        <li>Categories</li>
+        <li>Livres</li>
+        <li>Commandes</li>
+        <li>Utilisateurs (admin seulement)</li>
+    </ul>
+    <p>CRUD generes avec Symfony Maker:</p>
+    <span class="cmd">php bin/console make:crud Auteur</span>
+    <span class="cmd">php bin/console make:crud Editeur</span>
+    <span class="cmd">php bin/console make:crud Categorie</span>
+    <span class="cmd">php bin/console make:crud Livre</span>
+    <span class="cmd">php bin/console make:crud Commande</span>
+    <span class="cmd">php bin/console make:crud User</span>
+    <p>Restrictions:</p>
+    <ul>
+        <li>ROLE_AGENT: acces dashboard</li>
+        <li>ROLE_ADMIN: gestion utilisateurs + roles + reset mot de passe</li>
+    </ul>
+    <p>Explication: le dashboard centralise la gestion des donnees vitrines. L admin dispose en plus de la gestion des comptes.</p>
+    <p class="note">Les routes du back-office sont sous /dashboard pour isoler l administration.</p>
+    <p class="note">Une interface admin supplementaire est realisee avec EasyAdminBundle, accessible via /admin (ROLE_ADMIN).</p>
+
+    <h2>7.1) EasyAdminBundle (partie admin)</h2>
+    <p>EasyAdmin est utilise pour toute la partie administration (ROLE_ADMIN).</p>
+    <p>Route admin: /admin (reserve ROLE_ADMIN).</p>
+    <p>CRUD EasyAdmin generes pour:</p>
+    <ul>
+        <li>Auteur</li>
+        <li>Editeur</li>
+        <li>Categorie</li>
+        <li>Livre</li>
+        <li>Commande</li>
+        <li>User</li>
+    </ul>
+    <p>Fichiers cles:</p>
+    <ul>
+        <li>src/Controller/Admin/DashboardController.php</li>
+        <li>src/Controller/Admin/*CrudController.php</li>
+    </ul>
+
+    <h2>8) Couverture des livres (upload)</h2>
+    <p>Chaque livre a une image de couverture. Upload gere dans le back-office.</p>
+    <p>Dossier de stockage:</p>
+    <span class="cmd">public/uploads/covers</span>
+    <p>Affichage de la couverture dans les listes et details.</p>
+    <p>Explication: au moment de creer ou modifier un livre, l image est chargee et stockee dans le dossier public. L URL est ensuite affichee en front et back-office.</p>
+    <p class="note">Dans une evolution, on pourrait gerer la suppression des anciens fichiers lors d un remplacement.</p>
+
+    <h2>9) Front-Office (site vitrine)</h2>
+    <p>Pages publiques:</p>
+    <ul>
+        <li>Accueil: categories, editeurs, derniers livres</li>
+        <li>Catalogue livres</li>
+        <li>Detail livre (description complete)</li>
+    </ul>
+    <p>Recherche multi-criteres:</p>
+    <ul>
+        <li>Titre</li>
+        <li>Auteur</li>
+        <li>Editeur</li>
+        <li>Categorie</li>
+    </ul>
+    <p>Routes utiles:</p>
+    <ul>
+        <li>/</li>
+        <li>/livres</li>
+        <li>/livres/{id}</li>
+    </ul>
+    <p class="note">Un bouton "Voir details" est ajoute dans le catalogue pour consulter la description complete du livre.</p>
+    <p>Explication: la vitrine expose les categories, editeurs et livres, et permet a un visiteur de decouvrir le catalogue.</p>
+    <p class="note">La recherche est realisee par une requete dynamique dans LivreRepository (filtrage multi-criteres).</p>
+
+    <h2>10) Panier et validation de commande</h2>
+    <p>Le panier est stocke en session.</p>
+    <p>Le client ajoute un livre, puis valide pour creer une commande.</p>
+    <p>Routes:</p>
+    <ul>
+        <li>/panier</li>
+        <li>/panier/ajouter/{id}</li>
+        <li>/panier/supprimer/{id}</li>
+        <li>/panier/valider</li>
+    </ul>
+    <p>Le back-office permet de suivre les commandes.</p>
+    <p>Explication: le panier est un stockage temporaire. La commande n est creee qu apres validation, conformement a l enonce.</p>
+    <p class="note">La creation de commande se fait en une seule transaction: Commande + LigneCommande.</p>
+    <p class="note">Validation du stock: si le stock est insuffisant, la commande est refusee. Apres validation, le stock est decremente.</p>
+
+    <h2>11) Profil abonne</h2>
+    <p>Chaque abonne peut modifier:</p>
+    <ul>
+        <li>Email</li>
+        <li>Adresse</li>
+        <li>Telephone</li>
+        <li>Mot de passe</li>
+    </ul>
+    <p>Route: /profile</p>
+    <p>Explication: cette page permet a l abonne de mettre a jour ses informations personnelles et son mot de passe.</p>
+    <p class="note">Le changement de mot de passe exige le mot de passe actuel (UserPassword constraint).</p>
+
+    <h2>11.1) Historique des commandes (abonne)</h2>
+    <p>Chaque abonne peut consulter ses commandes dans une page dediee.</p>
+    <p>Route: /mes-commandes</p>
+    <p>Explication: cette page affiche l historique (date, statut, total) et permet de verifier les achats precedents.</p>
+    <p class="note">L agent herite ROLE_ABONNE, donc il accede aussi a la vitrine et a l historique des commandes.</p>
+
+    <h2>12) Redirection apres login</h2>
+    <p>Admin redirige vers / (vitrine) pour travailler sur le front + acces EasyAdmin via menu.</p>
+    <p>Agent redirige vers /dashboard.</p>
+    <p>Abonne redirige vers / (front-office).</p>
+    <p>Explication: l admin gere les donnees via EasyAdmin, tandis que l agent utilise le dashboard classique.</p>
+    <p class="note">Implementation via un LoginSuccessHandler personnalise + regle access_control sur /dashboard.</p>
+
+    <h2>13) Guide d execution pas a pas</h2>
+    <ol>
+        <li>Demarrer XAMPP et activer MySQL.</li>
+        <li>Lancer le serveur Symfony:</li>
+    </ol>
+    <span class="cmd">php -S 127.0.0.1:8000 -t public</span>
+    <p>Acces front-office: http://127.0.0.1:8000/</p>
+    <p>Acces login: http://127.0.0.1:8000/login</p>
+    <p>Acces dashboard (admin): http://127.0.0.1:8000/dashboard</p>
+    <p>Explication: utilisez un compte admin pour gerer les donnees (auteurs, editeurs, categories, livres, commandes, utilisateurs).</p>
+
+    <h2>14) Check-list de validation</h2>
+    <ul>
+        <li>Login admin -> dashboard</li>
+        <li>CRUD auteurs/editeurs/categories/livres OK</li>
+        <li>Upload image livre OK</li>
+        <li>Front-office affiche categories/editeurs/livres</li>
+        <li>Recherche multi-criteres OK</li>
+        <li>Panier + validation commande OK</li>
+        <li>Profil abonne modifiable</li>
+        <li>Admin peut changer roles utilisateurs</li>
+    </ul>
+    <p>Explication: cette check-list permet de verifier rapidement que chaque exigence est couverte.</p>
+
+    <h2>16) Questions techniques possibles (soutenance)</h2>
+    <h3>Q: Pourquoi utiliser une table LigneCommande?</h3>
+    <p>R: Pour conserver l historique de chaque livre commande (prix, quantite) et permettre plusieurs livres par commande.</p>
+
+    <h3>Q: Comment garantir que seuls les admins gerent les utilisateurs?</h3>
+    <p>R: Les routes /dashboard/utilisateurs sont protegees par l attribut IsGranted('ROLE_ADMIN').</p>
+
+    <h3>Q: Comment eviter qu un abonne accede au dashboard?</h3>
+    <p>R: Access control dans security.yaml + redirection apres login.</p>
+
+    <h3>Q: Comment fonctionne le panier?</h3>
+    <p>R: Stockage en session. A la validation, creation d une Commande et de LigneCommande, puis vidage du panier.</p>
+
+    <h3>Q: Pourquoi les mots de passe ne sont pas affiches?</h3>
+    <p>R: Pour des raisons de securite. Le hash est stocke en base et ne doit jamais etre montre.</p>
+
+    <h3>Q: Comment est implemente l upload des images?</h3>
+    <p>R: Le formulaire livre utilise un FileType non mappe, puis le fichier est deplace dans public/uploads/covers.</p>
+
+    <h3>Q: Comment ajouter un nouveau role?</h3>
+    <p>R: Ajouter le role dans la hierarchie et mettre a jour le formulaire UserType.</p>
+
+    <h2>17) Pistes d evolution (optionnel)</h2>
+    <ul>
+        <li>Ajouter des stocks dynamiques et decrementer au moment de la commande.</li>
+        <li>Ajouter une page detail livre.</li>
+        <li>Ajouter un historique des commandes cote utilisateur.</li>
+        <li>Ajouter un upload multiple pour les images.</li>
+    </ul>
+
+    <h2>17.1) Description des fichiers principaux</h2>
+    <p>Cette section explique les fichiers cles pour comprendre rapidement le projet.</p>
+    <h3>Entites (modele de donnees)</h3>
+    <ul>
+        <li>src/Entity/User.php: utilisateur avec roles et informations personnelles.</li>
+        <li>src/Entity/Livre.php: livre avec auteur, editeur, categorie, prix, stock, image.</li>
+        <li>src/Entity/Auteur.php, Editeur.php, Categorie.php: tables de reference.</li>
+        <li>src/Entity/Commande.php et LigneCommande.php: commandes et details.</li>
+    </ul>
+    <h3>Controleurs (routes)</h3>
+    <ul>
+        <li>src/Controller/HomeController.php: accueil front-office.</li>
+        <li>src/Controller/FrontLivreController.php: catalogue et detail livre.</li>
+        <li>src/Controller/CartController.php: panier + validation.</li>
+        <li>src/Controller/ProfileController.php: profil abonne.</li>
+        <li>src/Controller/OrderHistoryController.php: historique commandes abonne.</li>
+        <li>src/Controller/DashboardController.php: accueil dashboard.</li>
+        <li>src/Controller/*Controller.php: CRUD back-office.</li>
+    </ul>
+    <h3>Formulaires</h3>
+    <ul>
+        <li>src/Form/RegistrationFormType.php: inscription.</li>
+        <li>src/Form/UserType.php: gestion users (admin).</li>
+        <li>src/Form/LivreType.php: creation/modif livre + upload.</li>
+        <li>src/Form/ProfileFormType.php + ChangePasswordFormType.php: profil abonne.</li>
+    </ul>
+    <h3>Services et securite</h3>
+    <ul>
+        <li>src/Service/CartService.php: logique panier (session).</li>
+        <li>src/Security/LoginSuccessHandler.php: redirection apres login.</li>
+        <li>config/packages/security.yaml: roles + acces.</li>
+    </ul>
+    <h3>Repositories</h3>
+    <ul>
+        <li>src/Repository/*Repository.php: requetes vers la base (ex: searchByCriteria dans LivreRepository).</li>
+        <li>Les repositories sont injectes dans les controllers pour lire les donnees.</li>
+    </ul>
+    <h3>Controllers</h3>
+    <ul>
+        <li>Les controllers recoivent les requetes HTTP, appellent services/repositories, puis rendent les templates.</li>
+        <li>Les routes sont definies via attributs #[Route] dans chaque controller.</li>
+    </ul>
+    <h3>Fichiers YAML (configuration)</h3>
+    <ul>
+        <li>config/packages/security.yaml: roles, firewalls, access_control.</li>
+        <li>config/packages/doctrine.yaml: connexion DB et mapping.</li>
+        <li>config/services.yaml: parametres et services (ex: covers_directory).</li>
+    </ul>
+    <h3>Templates Twig</h3>
+    <ul>
+        <li>templates/base.html.twig: layout global + menu.</li>
+        <li>templates/front/*: pages vitrine.</li>
+        <li>templates/dashboard/*: back-office.</li>
+        <li>templates/cart/index.html.twig: panier.</li>
+        <li>templates/profile/index.html.twig: profil.</li>
+    </ul>
+    <h3>Autres</h3>
+    <ul>
+        <li>migrations/*: scripts SQL Doctrine.</li>
+        <li>public/uploads/covers: couvertures des livres.</li>
+    </ul>
+    <h3>Dossiers techniques (vendor, var)</h3>
+    <ul>
+        <li>vendor/: dependances installees par Composer (Symfony, EasyAdmin, etc.). A ne pas modifier.</li>
+        <li>var/: cache, logs et fichiers temporaires generes par Symfony.</li>
+    </ul>
+    <h3>Structure generale du projet</h3>
+    <ul>
+        <li>src/: code PHP (controllers, entites, services).</li>
+        <li>templates/: vues Twig.</li>
+        <li>config/: configuration YAML.</li>
+        <li>public/: fichiers accessibles via le navigateur.</li>
+        <li>migrations/: versions de schema DB.</li>
+        <li>vendor/: bibliotheques tierces (Composer).</li>
+        <li>var/: cache et logs (runtime).</li>
+    </ul>
+
+    <h2>18) Amelioration de style (Twig)</h2>
+    <p>Un style commun a ete ajoute dans le layout principal pour renforcer la coherence visuelle.</p>
+    <ul>
+        <li>Barre de navigation globale (Accueil, Livres, Panier, Profil, Dashboard, Connexion/Deconnexion).</li>
+        <li>Menu masquee sur les pages login/inscription pour une interface epuree.</li>
+        <li>Dashboard conserve son propre layout, sans barre de navigation front.</li>
+    </ul>
+    <p>Fichiers touches:</p>
+    <ul>
+        <li>templates/base.html.twig</li>
+        <li>templates/appauthenticator/login.html.twig</li>
+        <li>templates/registration/register.html.twig</li>
+        <li>templates/dashboard/layout.html.twig</li>
+    </ul>
+    <p>Amelioration supplementaire du dashboard:</p>
+    <ul>
+        <li>Entete avec titre et email connecte</li>
+        <li>Styles de tableau et boutons harmonises</li>
+        <li>Menu laterale plus lisible</li>
+    </ul>
+    <p>Amelioration supplementaire du menu front:</p>
+    <ul>
+        <li>Barre de navigation sticky</li>
+        <li>Liens groupes dans un conteneur</li>
+        <li>Acces rapide a Panier, Mes commandes, Profil</li>
+    </ul>
+    <p>Amelioration des listes de livres:</p>
+    <ul>
+        <li>Cartes visuelles avec ombre douce</li>
+        <li>Boutons "Voir details" et "Ajouter au panier"</li>
+        <li>Page detail livre avec description complete</li>
+    </ul>
+    <p>Harmonisation des couleurs:</p>
+    <ul>
+        <li>Palette marine + beige clair appliquee sur front, auth, profil, dashboard</li>
+        <li>Boutons et liens alignes sur la meme couleur d accent</li>
+    </ul>
+    <p>Messages flash:</p>
+    <ul>
+        <li>Confirmation apres creation/modification/suppression</li>
+        <li>Alertes pour panier vide ou stock insuffisant</li>
+    </ul>
+
+    <h2>15) Commandes utilisees (liste complete + explications)</h2>
+    <p>Les commandes ci-dessous sont les principales commandes Symfony utilisees pour realiser rapidement un projet complet.</p>
+
+    <h3>Creation du projet</h3>
+    <p>Creer un projet web Symfony avec les paquets courants (Twig, Doctrine, Security, etc.).</p>
+    <span class="cmd">symfony new MyBookstore --webapp</span>
+
+    <h3>Base de donnees</h3>
+    <p>Creer la base de donnees configuree dans DATABASE_URL.</p>
+    <span class="cmd">symfony console doctrine:database:create</span>
+    <p class="note">Avant la commande, il faut renseigner correctement DATABASE_URL dans .env.local.</p>
+
+    <h3>Creation d une classe entite</h3>
+    <p>Generer une entite Doctrine et ses champs (ex: Livre, Auteur, User...).</p>
+    <span class="cmd">symfony console make:entity</span>
+    <p>Exemples utilises:</p>
+    <span class="cmd">php bin/console make:entity User</span>
+    <span class="cmd">php bin/console make:entity Livre</span>
+
+    <h3>Creation d un script de migration</h3>
+    <p>Detecter les changements dans les entites et generer un script SQL de migration.</p>
+    <span class="cmd">symfony console make:migration</span>
+
+    <h3>Execution des migrations</h3>
+    <p>Appliquer les migrations pour creer/mettre a jour les tables en base.</p>
+    <span class="cmd">symfony console doctrine:migrations:migrate</span>
+
+    <h3>Generation du CRUD</h3>
+    <p>Creer automatiquement un controleur, un formulaire et des templates CRUD.</p>
+    <span class="cmd">symfony console make:crud</span>
+    <p>Exemples utilises:</p>
+    <span class="cmd">php bin/console make:crud Auteur</span>
+    <span class="cmd">php bin/console make:crud Livre</span>
+
+    <h3>Authentification</h3>
+    <p>Generer les pages de login et l authentificateur.</p>
+    <span class="cmd">php bin/console make:security:form-login</span>
+    <p>Generer le formulaire d inscription.</p>
+    <span class="cmd">php bin/console make:registration-form</span>
+
+    <h3>Creation des comptes (hash + insertion)</h3>
+    <p>Hasher un mot de passe puis inserer l utilisateur en base.</p>
+    <span class="cmd">php bin/console security:hash-password "khaled2003"</span>
+    <span class="cmd">php bin/console security:hash-password "oussama2002"</span>
+    <span class="cmd">php bin/console doctrine:query:sql "INSERT INTO user (...)"</span>
+
+    <h3>Serveur local</h3>
+    <p>Demarrer un serveur PHP local pour tester le projet.</p>
+    <span class="cmd">php -S 127.0.0.1:8000 -t public</span>
+
+    <h3>Autres commandes utiles</h3>
+    <p>Ecraser la base de donnees (suppression forcee):</p>
+    <span class="cmd">symfony console doctrine:database:drop --force</span>
+    <p>Creer une classe formulaire:</p>
+    <span class="cmd">symfony console make:form</span>
+    <p>Creer un controleur:</p>
+    <span class="cmd">symfony console make:controller</span>
+    <p>Creer un projet microservice:</p>
+    <span class="cmd">symfony new nomProjet</span>
+    <p>Telecharger un projet DEMO:</p>
+    <span class="cmd">symfony new --demo nomProjet</span>
+    <p>Verifier les prerequis systeme:</p>
+    <span class="cmd">symfony check:requirement</span>
+    <p>Auditer la securite des dependances:</p>
+    <span class="cmd">symfony console security:check</span>
+
+    <h2>Conclusion</h2>
+    <p>Le projet est complet et conforme au cahier des charges. Si le TD persistance impose des champs/relations
+    particuliers, il suffit d ajuster les entites et de regenirer une migration.</p>
+</body>
+</html>

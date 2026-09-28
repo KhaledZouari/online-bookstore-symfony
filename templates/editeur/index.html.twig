@@ -1,0 +1,41 @@
+{% extends 'dashboard/layout.html.twig' %}
+
+{% block title %}Editeur index{% endblock %}
+
+{% block dashboard_body %}
+    <h1>Editeur index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Nom</th>
+                <th>Adresse</th>
+                <th>Telephone</th>
+                <th>Email</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for editeur in editeurs %}
+            <tr>
+                <td>{{ editeur.id }}</td>
+                <td>{{ editeur.nom }}</td>
+                <td>{{ editeur.adresse }}</td>
+                <td>{{ editeur.telephone }}</td>
+                <td>{{ editeur.email }}</td>
+                <td>
+                    <a href="{{ path('app_editeur_show', {'id': editeur.id}) }}">show</a>
+                    <a href="{{ path('app_editeur_edit', {'id': editeur.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="6">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_editeur_new') }}">Create new</a>
+{% endblock %}

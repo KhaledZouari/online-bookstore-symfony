@@ -1,0 +1,193 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Livres{% endblock %}
+
+{% block stylesheets %}
+    <style>
+        :root {
+            --paper: #f7f2e8;
+            --ink: #1f2a44;
+            --muted: #5c667a;
+            --accent: #1f2a44;
+            --card: #fffaf2;
+            --line: #e2d6c5;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Georgia", "Times New Roman", serif;
+            color: var(--ink);
+            background: var(--paper);
+        }
+
+        .page {
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .filters {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 24px;
+            display: grid;
+            gap: 12px;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        }
+
+        .filters label {
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .filters input,
+        .filters select {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid #d8c6b5;
+            background: #fff;
+        }
+
+        .filters button {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 999px;
+            padding: 10px 16px;
+            cursor: pointer;
+        }
+
+        .grid {
+            display: grid;
+            gap: 16px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 16px;
+            box-shadow: 0 10px 24px rgba(20, 30, 50, 0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .book-cover {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 1px solid #e6d8c9;
+            margin-bottom: 10px;
+        }
+
+        .book-actions {
+            margin-top: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 999px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 13px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="page">
+        <h1>Catalogue des livres</h1>
+
+        <form method="get" class="filters">
+            <div>
+                <label for="titre">Titre</label>
+                <input id="titre" name="titre" value="{{ criteria.titre }}">
+            </div>
+            <div>
+                <label for="auteur">Auteur</label>
+                <select id="auteur" name="auteur">
+                    <option value="0">Tous</option>
+                    {% for auteur in auteurs %}
+                        <option value="{{ auteur.id }}" {{ auteur.id == criteria.auteur ? 'selected' : '' }}>
+                            {{ auteur.nom }} {{ auteur.prenom }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="editeur">Editeur</label>
+                <select id="editeur" name="editeur">
+                    <option value="0">Tous</option>
+                    {% for editeur in editeurs %}
+                        <option value="{{ editeur.id }}" {{ editeur.id == criteria.editeur ? 'selected' : '' }}>
+                            {{ editeur.nom }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="categorie">Categorie</label>
+                <select id="categorie" name="categorie">
+                    <option value="0">Toutes</option>
+                    {% for categorie in categories %}
+                        <option value="{{ categorie.id }}" {{ categorie.id == criteria.categorie ? 'selected' : '' }}>
+                            {{ categorie.nom }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div style="align-self: end;">
+                <button type="submit">Rechercher</button>
+            </div>
+        </form>
+
+        <div class="grid">
+            {% for livre in livres %}
+                <div class="card">
+                    {% if livre.image %}
+                        <img class="book-cover" src="{{ asset('uploads/covers/' ~ livre.image) }}" alt="{{ livre.titre }}">
+                    {% endif %}
+                    <h3>{{ livre.titre }}</h3>
+                    <p>{{ livre.auteur ? livre.auteur.nom : '' }}</p>
+                    <p><strong>{{ livre.prix }}</strong></p>
+                    <div class="book-actions">
+                        <a class="btn btn-outline" href="{{ path('front_livre_show', {id: livre.id}) }}">Voir details</a>
+                        {% if is_granted('ROLE_ABONNE') %}
+                            <form method="post" action="{{ path('cart_add', {id: livre.id}) }}">
+                                <label style="display: block; margin-bottom: 6px;">
+                                    Quantite
+                                    <input type="number" name="quantity" min="1" value="1" style="width: 70px; margin-left: 6px;">
+                                </label>
+                                <button class="btn" type="submit">Ajouter au panier</button>
+                            </form>
+                        {% else %}
+                            <a class="btn" href="{{ path('app_login') }}">Se connecter</a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% else %}
+                <p>Aucun livre trouve.</p>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

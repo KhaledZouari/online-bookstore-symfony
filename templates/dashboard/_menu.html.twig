@@ -1,0 +1,24 @@
+<nav class="dashboard-nav">
+    <div class="dashboard-brand">MyBookstore</div>
+    {% if app.user %}
+        <div class="dashboard-user">Connecte: {{ app.user.email }}</div>
+    {% endif %}
+    <a href="{{ path('dashboard_home') }}">Dashboard</a>
+    <a href="{{ path('app_auteur_index') }}">Auteurs</a>
+    <a href="{{ path('app_editeur_index') }}">Editeurs</a>
+    <a href="{{ path('app_categorie_index') }}">Categories</a>
+    <a href="{{ path('app_livre_index') }}">Livres</a>
+    <a href="{{ path('front_home') }}">Vitrine</a>
+    <a href="{{ path('front_livre_index') }}">Catalogue</a>
+    {% if is_granted('ROLE_ABONNE') %}
+        <a href="{{ path('app_order_history') }}">Mes commandes</a>
+    {% endif %}
+    {% if is_granted('ROLE_AGENT') %}
+        <a href="{{ path('app_commande_index') }}">Commandes</a>
+    {% endif %}
+    <a href="{{ path('app_profile') }}">Mon profil</a>
+    {% if is_granted('ROLE_ADMIN') %}
+        <a href="{{ path('app_user_index') }}">Utilisateurs</a>
+    {% endif %}
+    <a href="{{ path('app_logout') }}">Deconnexion</a>
+</nav>

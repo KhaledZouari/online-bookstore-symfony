@@ -1,0 +1,31 @@
+{% extends 'dashboard/layout.html.twig' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block dashboard_body %}
+    <h1>Dashboard</h1>
+    <p>Bienvenue dans le back-office MyBookstore.</p>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-top: 20px;">
+        <div class="dashboard-card">
+            <strong>Livres</strong>
+            <div>{{ stats.livres }}</div>
+        </div>
+        <div class="dashboard-card">
+            <strong>Commandes</strong>
+            <div>{{ stats.commandes }}</div>
+        </div>
+        <div class="dashboard-card">
+            <strong>Categories</strong>
+            <div>{{ stats.categories }}</div>
+        </div>
+        <div class="dashboard-card">
+            <strong>Auteurs</strong>
+            <div>{{ stats.auteurs }}</div>
+        </div>
+        <div class="dashboard-card">
+            <strong>Editeurs</strong>
+            <div>{{ stats.editeurs }}</div>
+        </div>
+    </div>
+{% endblock %}

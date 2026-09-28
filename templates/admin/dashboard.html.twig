@@ -1,0 +1,28 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block content_title %}Dashboard Admin{% endblock %}
+
+{% block main %}
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px;">
+        <div class="content-panel">
+            <strong>Livres</strong>
+            <div>{{ stats.livres }}</div>
+        </div>
+        <div class="content-panel">
+            <strong>Commandes</strong>
+            <div>{{ stats.commandes }}</div>
+        </div>
+        <div class="content-panel">
+            <strong>Categories</strong>
+            <div>{{ stats.categories }}</div>
+        </div>
+        <div class="content-panel">
+            <strong>Auteurs</strong>
+            <div>{{ stats.auteurs }}</div>
+        </div>
+        <div class="content-panel">
+            <strong>Editeurs</strong>
+            <div>{{ stats.editeurs }}</div>
+        </div>
+    </div>
+{% endblock %}

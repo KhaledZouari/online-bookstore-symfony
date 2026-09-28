@@ -1,0 +1,58 @@
+{% extends 'dashboard/layout.html.twig' %}
+
+{% block title %}Commande{% endblock %}
+
+{% block dashboard_body %}
+    <h1>Commande</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ commande.id }}</td>
+            </tr>
+            <tr>
+                <th>CreatedAt</th>
+                <td>{{ commande.createdAt ? commande.createdAt|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+            <tr>
+                <th>Statut</th>
+                <td>{{ commande.statut }}</td>
+            </tr>
+            <tr>
+                <th>Total</th>
+                <td>{{ commande.total }}</td>
+            </tr>
+            <tr>
+                <th>Utilisateur</th>
+                <td>{{ commande.user ? commande.user.email : '' }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>Articles</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Livre</th>
+                <th>Quantite</th>
+                <th>Prix unitaire</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for ligne in commande.lignesCommandes %}
+            <tr>
+                <td>{{ ligne.livre.titre }}</td>
+                <td>{{ ligne.quantite }}</td>
+                <td>{{ ligne.prixUnitaire }}</td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="3">Aucun article.</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_commande_index') }}">back to list</a>
+{% endblock %}

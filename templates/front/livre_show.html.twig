@@ -1,0 +1,39 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ livre.titre }}{% endblock %}
+
+{% block body %}
+    <div style="max-width: 900px; margin: 30px auto; padding: 0 20px;">
+        <a href="{{ path('front_livre_index') }}">Retour au catalogue</a>
+
+        <div style="display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-top: 20px;">
+            <div>
+                {% if livre.image %}
+                    <img src="{{ asset('uploads/covers/' ~ livre.image) }}" alt="{{ livre.titre }}" style="width: 100%; border-radius: 12px; border: 1px solid #e2d6c5;">
+                {% endif %}
+            </div>
+            <div>
+                <h1>{{ livre.titre }}</h1>
+                <p><strong>Auteur:</strong> {{ livre.auteur ? livre.auteur.nom ~ ' ' ~ livre.auteur.prenom : '' }}</p>
+                <p><strong>Editeur:</strong> {{ livre.editeur ? livre.editeur.nom : '' }}</p>
+                <p><strong>Categorie:</strong> {{ livre.categorie ? livre.categorie.nom : '' }}</p>
+                <p><strong>Prix:</strong> {{ livre.prix }}</p>
+                <p><strong>Stock:</strong> {{ livre.stock }}</p>
+                <p><strong>Description:</strong></p>
+                <p>{{ livre.description ?: 'Aucune description.' }}</p>
+
+                {% if is_granted('ROLE_ABONNE') %}
+                    <form method="post" action="{{ path('cart_add', {id: livre.id}) }}">
+                        <label style="display: block; margin-bottom: 6px;">
+                            Quantite
+                            <input type="number" name="quantity" min="1" value="1" style="width: 70px; margin-left: 6px;">
+                        </label>
+                        <button type="submit" style="background: #1f2a44; color: #fff; border: none; border-radius: 999px; padding: 8px 12px;">Ajouter au panier</button>
+                    </form>
+                {% else %}
+                    <p><a href="{{ path('app_login') }}">Se connecter pour commander</a></p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

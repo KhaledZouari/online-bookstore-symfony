@@ -1,0 +1,168 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block header %}{% endblock %}
+
+{% block stylesheets %}
+    <style>
+        :root {
+            --paper: #f7f2e8;
+            --ink: #1f2a44;
+            --muted: #5c667a;
+            --accent: #1f2a44;
+            --card: #fffaf2;
+            --line: #e2d6c5;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Georgia", "Times New Roman", serif;
+            color: var(--ink);
+            background: var(--paper);
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 220px 1fr;
+            min-height: 100vh;
+        }
+
+        .dashboard-nav {
+            padding: 28px 18px;
+            background: #efe2d0;
+            border-right: 1px solid var(--line);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .dashboard-brand {
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .dashboard-nav a {
+            color: var(--muted);
+            text-decoration: none;
+            padding: 8px 10px;
+            border-radius: 8px;
+        }
+
+        .dashboard-nav a:hover {
+            background: #e6d5c2;
+            color: var(--ink);
+        }
+
+        .dashboard-main {
+            padding: 32px;
+        }
+
+        .dashboard-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+            padding: 12px 18px;
+            background: #fff4e6;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+        }
+
+        .dashboard-user {
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .dashboard-card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 24px;
+            box-shadow: 0 18px 40px rgba(70, 45, 30, 0.12);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .table th,
+        .table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid var(--line);
+            text-align: left;
+        }
+
+        .table th {
+            color: var(--muted);
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .btn,
+        button {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 999px;
+            padding: 8px 14px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        a {
+            color: var(--accent);
+        }
+
+        .flash {
+            padding: 10px 12px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            border: 1px solid var(--line);
+            background: #fffaf2;
+        }
+
+        .flash-success {
+            border-color: #b8d2b2;
+            background: #f1fbef;
+        }
+
+        .flash-warning {
+            border-color: #e0c08f;
+            background: #fff6e3;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="dashboard">
+        {% include 'dashboard/_menu.html.twig' %}
+        <main class="dashboard-main">
+            <div class="dashboard-header">
+                <div>
+                    <strong>Tableau de bord</strong>
+                    <div class="dashboard-user">Gestion interne MyBookstore</div>
+                </div>
+                <div class="dashboard-user">
+                    {% if app.user %}{{ app.user.email }}{% endif %}
+                </div>
+            </div>
+            <div class="dashboard-card">
+                {% if app.flashes is not empty %}
+                    {% for label, messages in app.flashes %}
+                        {% for message in messages %}
+                            <div class="flash flash-{{ label }}">{{ message }}</div>
+                        {% endfor %}
+                    {% endfor %}
+                {% endif %}
+                {% block dashboard_body %}{% endblock %}
+            </div>
+        </main>
+    </div>
+{% endblock %}
