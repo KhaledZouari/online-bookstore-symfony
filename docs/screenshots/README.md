@@ -1,4 +1,5 @@
-# Captures d’écran à fournir
+# Screenshots to add
 
-Cet emplacement accueillera les captures de la boutique, du panier, des
-commandes et de l’administration avec des données fictives.
+Add screenshots of the catalog, cart, ordering workflow, and administration
+area here. Use fictional data only.
+

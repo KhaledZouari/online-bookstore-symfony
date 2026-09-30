@@ -1,43 +1,29 @@
-# Online Bookstore Symfony
+# Online Bookstore — Symfony
 
-Application web de librairie en ligne avec catalogue, panier, commandes,
-comptes utilisateurs et espace d’administration.
+A full-stack bookstore application with a product catalog, shopping cart,
+ordering workflow, user accounts, and an administration area.
 
-## Fonctionnalités vérifiées
+## Features
 
-- Catalogue et fiches détaillées des livres.
-- Inscription, connexion et gestion du profil utilisateur.
-- Ajout et retrait de livres dans le panier, puis validation d’une commande.
-- Consultation de l’historique des commandes.
-- Gestion des livres, auteurs, éditeurs, catégories, commandes et utilisateurs.
-- Tableau de bord d’administration avec EasyAdmin.
+- Book catalog with authors, publishers, categories, and search
+- Session-based cart management
+- Customer accounts and order history
+- Checkout and order lifecycle management
+- EasyAdmin back office for catalog and order administration
 
 ## Stack
 
-- PHP 8.2 ou supérieur et Symfony 7.4.
-- Doctrine ORM et migrations.
-- Twig, Symfony Forms et Symfony Security.
-- EasyAdmin 4 pour l’administration.
-- PHPUnit 11 pour les tests.
+PHP, Symfony, Doctrine ORM, Twig, EasyAdmin, Bootstrap, and PHPUnit.
 
 ## Architecture
 
-```mermaid
-flowchart LR
-    Browser[Navigateur] --> Symfony[Contrôleurs Symfony]
-    Symfony --> Twig[Vues Twig]
-    Symfony --> Services[Services métier]
-    Services --> Doctrine[Doctrine ORM]
-    Doctrine --> DB[(Base relationnelle)]
-    Symfony --> Admin[EasyAdmin]
-```
+The application follows Symfony's controller–service–repository structure.
+Doctrine entities model books, authors, publishers, categories, users, orders,
+and order lines.
 
-Les principales entités sont `Livre`, `Auteur`, `Editeur`, `Categorie`,
-`User`, `Commande` et `LigneCommande`. Le panier est géré par `CartService`.
+## Local setup
 
-## Installation
-
-Prérequis : PHP 8.2+, Composer et une base compatible avec Doctrine.
+Prerequisites: PHP 8.2+, Composer, and a Doctrine-compatible database.
 
 ```bash
 git clone https://github.com/KhaledZouari/online-bookstore-symfony.git
@@ -48,7 +34,7 @@ php bin/console doctrine:migrations:migrate
 symfony server:start
 ```
 
-Configurez `DATABASE_URL` dans un fichier `.env.local`, jamais dans un commit.
+Set `DATABASE_URL` in `.env.local`; never commit credentials.
 
 ## Tests
 
@@ -56,7 +42,11 @@ Configurez `DATABASE_URL` dans un fichier `.env.local`, jamais dans un commit.
 php bin/phpunit
 ```
 
-## Captures d’écran
+## Screenshots
 
-Les futures captures peuvent être ajoutées dans `docs/screenshots/` avec des
-données fictives.
+Use `docs/screenshots/` for screenshots containing only fictional data.
+
+## License
+
+Distributed under the MIT License. See [LICENSE](LICENSE).
+
