@@ -18,7 +18,7 @@ jobs:
           php-version: '8.2'
           extensions: ctype, iconv, pdo_sqlite
           coverage: none
-      - uses: ramsey/composer-install@v3
+      - uses: ramsey/composer-install@v4
         with:
           dependency-versions: locked
       - run: php bin/console lint:container
