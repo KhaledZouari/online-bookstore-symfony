@@ -1,5 +1,8 @@
 # Online Bookstore — Symfony
 
+[![CI](https://github.com/KhaledZouari/online-bookstore-symfony/actions/workflows/ci.yml/badge.svg)](https://github.com/KhaledZouari/online-bookstore-symfony/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-2ea44f.svg)](LICENSE)
+
 A full-stack bookstore application with a product catalog, shopping cart,
 ordering workflow, user accounts, and an administration area.
 
