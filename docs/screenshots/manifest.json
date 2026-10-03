@@ -1,0 +1,24 @@
+{
+  "captured_on": "2026-10-03",
+  "kind": "runtime screenshots",
+  "images": [
+    {
+      "file": "catalog.png",
+      "width": 1440,
+      "height": 1000,
+      "sha256": "e315105268fb3d0933a782dcc218f026498114531a80692125aeb43cf680d2ea"
+    },
+    {
+      "file": "book-details.png",
+      "width": 1440,
+      "height": 1000,
+      "sha256": "9e8f1c21afcb5ba40520de9c2fccc62cebbca78129e07ee7eb47972483128c66"
+    },
+    {
+      "file": "cart.png",
+      "width": 1440,
+      "height": 1000,
+      "sha256": "0c84697a6646ea9492b346fea236d3e2ee13fe89fd46f932e7dab43b6b8a8687"
+    }
+  ]
+}

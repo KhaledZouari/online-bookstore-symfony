@@ -45,11 +45,56 @@ Set `DATABASE_URL` in `.env.local`; never commit credentials.
 php bin/phpunit
 ```
 
-## Screenshots
+## Business context and engineering approach
 
-Use `docs/screenshots/` for screenshots containing only fictional data.
+### Bookstore ordering workflows
+
+The bookstore connects book discovery, a session-based shopping cart and order
+management. Symfony controllers and services coordinate the customer workflow;
+Doctrine maps catalog and order entities; EasyAdmin provides a separate
+management interface.
+
+Cart state is separated into a service, ORM repositories support catalog access
+and Twig templates render customer-facing pages. Administration uses Symfony
+authorization rather than relying solely on hidden navigation links.
+
+## Application screenshots
+
+Captured from the running application on 3 October 2026.
+
+### Book catalog
+
+![Book catalog](docs/screenshots/catalog.png)
+
+Books, categories and prices from the isolated demonstration database.
+
+### Book details
+
+![Book details](docs/screenshots/book-details.png)
+
+A product page with bibliographic information and an add-to-cart workflow.
+
+### Shopping cart
+
+![Shopping cart](docs/screenshots/cart.png)
+
+Session-based quantities and calculated order totals.
+
+### Capture environment
+
+The local run uses PHP 8.4, installed Composer dependencies and an isolated
+SQLite schema generated from the Doctrine mappings. Six fictional books and a
+local subscriber account exercise catalog browsing, login and the cart. Book
+covers are simple demonstration assets. The development profiler is disabled for
+the screenshots. The checked-in migration targets MySQL and was not executed
+against SQLite.
+
+## Evidence and current scope
+
+The capture database contains only fictional books and local demonstration
+records. These screens do not establish payment-provider integration or
+production readiness.
 
 ## License
 
 Distributed under the MIT License. See [LICENSE](LICENSE).
-
